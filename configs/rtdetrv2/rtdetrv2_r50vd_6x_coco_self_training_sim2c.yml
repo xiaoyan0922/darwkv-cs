@@ -1,0 +1,73 @@
+__include__: [
+  '../dataset/coco_detection_self_training_sim2c.yml',
+  '../runtime.yml',
+  # './include/dataloader.yml',
+  './include/optimizer.yml',
+  './include/rtdetrv2_r50vd.yml',
+]
+
+
+output_dir: ./output/selftraining_sim2c_rwkv_slot
+
+dinosaur_checkpoint: "importantpt/hsa.pt"
+dinosaur_isa: False
+dinosaur_lr: 1e-5
+
+find_unused_parameters: True
+
+epoches: 12
+use_teacher: True
+use_HSA: True
+burn_epochs: 0
+# pseudo_threshold: 0.4
+ema_decay_teacher: 0.9993
+nms_iou_threshold: 0.5
+t_max: 0.55
+t_min: 0.50
+beta: 0.25
+thresholdmethod: 'cos'
+teacher_path: './output/importantpt/best_pretraining_sim2c_rwkv_slot.pth'
+
+HybridEncoder:
+  use_domain_decay: True
+  domain_decay_max_delta: 0.4
+  domain_decay_proto_tau: 0.1
+  use_encoder_idx: [1, 2]
+  num_classes: 1
+
+RTDETRTransformerv2:
+  contrastive_loss: True
+  HSA: True
+
+optimizer:
+  type: AdamW
+  params:
+    -
+      params: '^(?=.*backbone)(?!.*norm).*$'
+      lr: 0.00001
+    -
+      params: '^(?=.*(?:encoder|decoder))(?=.*(?:norm|bn)).*$'
+      weight_decay: 0.
+
+  lr: 0.0001
+  betas: [0.9, 0.999]
+  weight_decay: 0.0001
+
+RTDETRCriterionv2:
+  use_contrastive_loss: True
+  use_slot_self_distill: False
+  use_slot_cross_view: False
+  slot_distill_momentum: 0.99
+  slot_distill_num_prototypes: 25
+  slot_distill_teacher_temp: 0.04
+  slot_distill_student_temp: 0.1
+  slot_cross_view_temp: 0.1
+  weight_dict:
+    loss_vfl: 1
+    loss_bbox: 5
+    loss_giou: 2
+    loss_reconstruction_l2: 1
+    loss_contrastive: 0.05
+    loss_slot_self_distill: 0.05
+    loss_slot_cross_view: 0.1
+
