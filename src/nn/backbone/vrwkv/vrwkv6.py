@@ -51,7 +51,6 @@ class DropPath(nn.Module):
 
 
 def resize_pos_embed(pos_embed, src_shape, dst_shape, mode='bicubic', num_extra_tokens=0):
-    """纯 PyTorch 实现的位置编码缩放"""
     if src_shape[0] == dst_shape[0] and src_shape[1] == dst_shape[1]:
         return pos_embed
     assert pos_embed.ndim == 3, 'shape of pos_embed must be [B, L, C]'
@@ -86,9 +85,6 @@ class PatchEmbed(nn.Module):
         return x, out_size
 
 
-# =========================================================================
-# 3. VRWKV 核心算子逻辑
-# =========================================================================
 class WKV_6(torch.autograd.Function):
     @staticmethod
     def forward(ctx, B, T, C, H, r, k, v, w, u):
@@ -99,14 +95,13 @@ class WKV_6(torch.autograd.Function):
             ctx.C = C
             ctx.H = H
 
-            # 🚀 核心修复：强制转为 float32 (Float) 并保持内存连续
             r = r.float().contiguous()
             k = k.float().contiguous()
             v = v.float().contiguous()
             w = w.float().contiguous()
             u = u.float().contiguous()
 
-            # 注意：这里的 w 已经是 float32 了，可以直接算 exp
+
             ew = (-torch.exp(w)).contiguous()
             ctx.save_for_backward(r, k, v, ew, u)
 
@@ -122,7 +117,6 @@ class WKV_6(torch.autograd.Function):
             C = ctx.C
             H = ctx.H
 
-            # 🚀 核心修复：梯度反传时，也必须强制转为 float32
             gy = gy.float().contiguous()
 
             r, k, v, ew, u = ctx.saved_tensors
