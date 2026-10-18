@@ -9,7 +9,6 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 if not torch.cuda.is_available():
     raise RuntimeError("CUDA is not available. VRWKV requires CUDA to compile.")
 
-# 🚨 核心修复：定义 VRWKV-v6 需要的全局宏变量
 HEAD_SIZE = 64
 T_MAX = 8192
 
@@ -21,8 +20,8 @@ ext_modules = [
             os.path.join(this_dir, 'wkv6_cuda.cu')
         ],
         define_macros=[
-            ('_N_', str(HEAD_SIZE)),  # 对应报错的 _N_
-            ('_T_', str(T_MAX))       # 对应报错的 _T_
+            ('_N_', str(HEAD_SIZE)),  
+            ('_T_', str(T_MAX))       
         ],
         extra_compile_args={
             'cxx': ['-O3'],
