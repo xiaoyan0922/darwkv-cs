@@ -495,7 +495,7 @@ class RTDETRCriterionv2(nn.Module):
         # Retrieve the matching between the outputs of the last layer and the targets
         matched = self.matcher(outputs_without_aux, targets)
         indices = matched['indices']
-        main_indices = indices  # 【修�?】：务必加上这一行，把主输出的匹配结果保存下�?
+        main_indices = indices  
         # print("yestyes0")
 
         # Compute all the requested losses
